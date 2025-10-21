@@ -1,6 +1,4 @@
-﻿
-
-namespace HeroProject
+﻿namespace HeroProject
 {
     using HeroProject;
     using System;
