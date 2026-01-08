@@ -64,15 +64,15 @@ namespace HeroProject
 
 
 
-            Console.WriteLine("Phone number (e.g, +46700000000):");
-            string phonenumber = Console.ReadLine();
+            //Console.WriteLine("Phone number (e.g, +46700000000):");
+            //string phonenumber = Console.ReadLine();
 
 
             User newUser = new User
             {
                 Username = username,
                 Password = password,
-                PhoneNumber = phonenumber
+                //PhoneNumber = phonenumber
             };
 
 
@@ -127,29 +127,29 @@ namespace HeroProject
                 else
                 {
 
-                    var random = new Random();
-                    string code = random.Next(100000, 999999).ToString();
+                    //var random = new Random();
+                    //string code = random.Next(100000, 999999).ToString();
 
 
-                    SendSms2FA(matchedUser.PhoneNumber, code);
+                    //SendSms2FA(matchedUser.PhoneNumber, code);
 
 
-                    Console.Write("Enter the 2FA code sent to your phone: ");
-                    string inputCode = Console.ReadLine();
+                    //Console.Write("Enter the 2FA code sent to your phone: ");
+                    //string inputCode = Console.ReadLine();
 
-                    if (inputCode == code)
-                    {
+                    //if (inputCode == code)
+                    //{
 
-                        Console.WriteLine($"Welcome {Username}!");
-                        loggedIn = true;
+                       Console.WriteLine($"Welcome {Username}!");
+                      loggedIn = true;
 
 
-                        MenuHelper.LoggedInMenu(matchedUser);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Incorrect 2FA code. Please try again.");
-                    }
+                    MenuHelper.LoggedInMenu(matchedUser);
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("Incorrect 2FA code. Please try again.");
+                    //}
                 }
             }
         }
