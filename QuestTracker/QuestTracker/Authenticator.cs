@@ -166,6 +166,7 @@ namespace HeroProject
 
 
                     MenuHelper.LoggedInMenu(matchedUser);
+                    
                     //}
                     //else
                     //{
