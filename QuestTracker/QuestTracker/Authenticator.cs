@@ -29,7 +29,7 @@ namespace HeroProject
             Console.WriteLine("--- Your adventure begins here! Sign up to track quests ---");
 
 
-            Console.WriteLine("Please write down the username:");
+            Console.WriteLine("Please write down your username:");
             string username = Console.ReadLine();
 
 
@@ -41,39 +41,60 @@ namespace HeroProject
             }
 
 
-            Console.Write("Please write down the password: ");
+            Console.WriteLine("Please write down the password (must meet all criteria below):");
+            int startLine = Console.CursorTop;
             string password = "";
+            bool isStrong = false;
             while (true)
             {
-                var key = Console.ReadKey(true);
+                Console.SetCursorPosition(0, startLine);
+                Console.Write("Password: " + new string('*', password.Length).PadRight(20));
 
+                var (len, up, dig, spec) = User.GetCriteria(password);
+                isStrong = len && up && dig && spec;
+
+                Console.SetCursorPosition(0, startLine + 1);
+                
+                Console.ForegroundColor = len ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($" [{(len ? 'v' : ' ')}] 6+ characters  ");
+                Console.ForegroundColor = up ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($" [{(up ? 'v' : ' ')}] Uppercase  ");
+                Console.ForegroundColor = dig ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($" [{(dig ? 'v' : ' ')}] Number  ");
+                Console.ForegroundColor = spec ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($" [{(spec ? 'v' : ' ')}] Special character  ");
+                Console.ResetColor();
+                Console.Write("     "); // Clear trailing chars
+
+                var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
-                    break;
+                {
+                    if (isStrong)
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+                }
                 else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
                 {
                     password = password[..^1];
-                    Console.Write("\b \b");
                 }
-                else
+                else if (!char.IsControl(key.KeyChar))
                 {
                     password += key.KeyChar;
-                    Console.Write("*");
                 }
             }
             Console.WriteLine();
 
-
-
-            //Console.WriteLine("Phone number (e.g, +46700000000):");
-            //string phonenumber = Console.ReadLine();
-
+            Console.WriteLine("Phone number (e.g, +46700000000):");
+            string phonenumber = Console.ReadLine();
 
             User newUser = new User
             {
                 Username = username,
-                Password = password,
-                //PhoneNumber = phonenumber
+                PhoneNumber = phonenumber
             };
+            newUser.SetPassword(password);
 
 
             users.Add(newUser);
@@ -102,7 +123,7 @@ namespace HeroProject
                 string Password = Console.ReadLine();
 
 
-                var matchedUser = users.FirstOrDefault(u => u.Username == Username && u.Password == Password);
+                var matchedUser = users.FirstOrDefault(u => u.Username == Username && u.CheckPassword(Password));
 
                 if (matchedUser == null)
                 {

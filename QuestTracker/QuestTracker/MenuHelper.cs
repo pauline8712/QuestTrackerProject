@@ -77,12 +77,12 @@ namespace HeroProject
 
             while (loggedIn)
             {
-                Console.Clear();
+                
 
                 Console.WriteLine($"Welcome! Hero: {User.Username}");
                 Console.WriteLine("Please choose between 1-6:");
                 Console.WriteLine("1. Add new quest");
-                Console.WriteLine("2. View all quests");
+                Console.WriteLine("2. View all quests"); 
                 Console.WriteLine("3. Update / Complete quest");
                 Console.WriteLine("4. Request Guild Advisor help (AI)");
                 Console.WriteLine("5. Show guild report");
