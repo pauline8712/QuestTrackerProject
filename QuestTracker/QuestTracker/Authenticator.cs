@@ -28,16 +28,23 @@ namespace HeroProject
         {
             Console.WriteLine("--- Your adventure begins here! Sign up to track quests ---");
 
+            string username;
 
-            Console.WriteLine("Please write down your username:");
-            string username = Console.ReadLine();
-
-
-            bool usernameExists = users.Any(u => u.Username == username);
-            if (usernameExists)
+            while (true)
             {
-                Console.WriteLine("Username already exists. Please try a different one.");
-                return;
+                Console.WriteLine("Please write down your username:");
+                username = Console.ReadLine();
+
+                bool usernameExists = users.Any(u => u.Username == username);
+
+                if (usernameExists)
+                {
+                    Console.WriteLine("This username already exists. Please choose another one.");
+                }
+                else
+                {
+                    break;
+                }
             }
 
 
@@ -104,6 +111,7 @@ namespace HeroProject
 
 
             newUser.ShowProfile();
+            Console.ReadKey();
         }
 
         //Inloggning
@@ -120,58 +128,48 @@ namespace HeroProject
                 string Username = Console.ReadLine();
 
                 Console.WriteLine("Enter the password:");
-                string Password = Console.ReadLine();
+
+                string Password = "";
+                ConsoleKeyInfo key;
+
+                while (true)
+                {
+                    key = Console.ReadKey(true);
+
+                    if (key.Key == ConsoleKey.Enter)
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+                    else if (key.Key == ConsoleKey.Backspace && Password.Length > 0)
+                    {
+                        Password = Password[..^1];
+                        Console.Write("\b \b");
+                    }
+                    else if (!char.IsControl(key.KeyChar))
+                    {
+                        Password += key.KeyChar;
+                        Console.Write("*");
+                    }
+                }
 
 
-                var matchedUser = users.FirstOrDefault(u => u.Username == Username && u.CheckPassword(Password));
+                var matchedUser = users.FirstOrDefault(u => u.Username == Username && u.CheckPassword(Password));//LINQ
 
                 if (matchedUser == null)
                 {
-
-                    Console.WriteLine("There is no one with that name, but you can go and register.");
-                    Console.WriteLine("Do you want to register now? (yes/no):");
-                    string response = Console.ReadLine().ToLower();
-
-                    if (response == "yes")
-                    {
-
-                        Registration();
-
-                        Console.WriteLine("Please login with your new credentials.");
-                        continue;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    Console.WriteLine("No user found with that username.");
+                    Console.WriteLine("Please register first from the main menu.");
+                    Console.WriteLine("Press any key to try again...");
+                    Console.ReadKey();
+                    continue;
                 }
                 else
                 {
-
-                    //var random = new Random();
-                    //string code = random.Next(100000, 999999).ToString();
-
-
-                    //SendSms2FA(matchedUser.PhoneNumber, code);
-
-
-                    //Console.Write("Enter the 2FA code sent to your phone: ");
-                    //string inputCode = Console.ReadLine();
-
-                    //if (inputCode == code)
-                    //{
-
-                       Console.WriteLine($"Welcome {Username}!");
-                      loggedIn = true;
-
+                    Console.WriteLine($"Welcome {Username}!");
+                    loggedIn = true;
 
                     MenuHelper.LoggedInMenu(matchedUser);
-                    
-                    //}
-                    //else
-                    //{
-                    //    Console.WriteLine("Incorrect 2FA code. Please try again.");
-                    //}
                 }
             }
         }
