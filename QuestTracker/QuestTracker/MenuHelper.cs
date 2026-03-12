@@ -25,19 +25,25 @@ namespace HeroProject
             while (running)
             {
                 Console.Clear();
-
-                Console.WriteLine("WELCOME TO THE QUEST GUILD TERMINAL");
-                Console.WriteLine("Choose an option (1-3)");
-                Console.WriteLine("1. Register Hero");
-                Console.WriteLine("2. Login Hero");
-                Console.WriteLine("3. Exit");
+                Console.WriteLine("========================================");
+                Console.WriteLine("   WELCOME TO THE QUEST GUILD TERMINAL");
+                Console.WriteLine("========================================\n");
+                
+                Console.WriteLine("  1. Register Hero\n");
+                Console.WriteLine("  2. Login Hero\n");
+                Console.WriteLine("  3. Exit\n");
+                
+                Console.WriteLine("========================================");
+                Console.Write("  Choose an option (1-3): ");
 
 
                 bool validInput = int.TryParse(Console.ReadLine(), out int choice);
 
                 if (!validInput)
                 {
-                    Console.WriteLine("Invalid choice! Try again.");
+                    Console.WriteLine("\nInvalid choice! Try again.");
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
                     continue;
                 }
 
@@ -45,24 +51,26 @@ namespace HeroProject
                 switch (choice)
                 {
                     case 1:
-
+                        Console.Clear();
                         authenticator.Registration();
                         break;
 
                     case 2:
-
+                        Console.Clear();
                         authenticator.Login();
                         break;
 
                     case 3:
 
                         running = false;
-                        Console.WriteLine("Farewell, brave hero!");
+                        Console.WriteLine("\nFarewell, brave hero!");
                         break;
 
                     default:
 
-                        Console.WriteLine("Invalid choice! Try again.");
+                        Console.WriteLine("\nInvalid choice! Try again.");
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadKey();
                         break;
                 }
             }
@@ -77,30 +85,36 @@ namespace HeroProject
 
             while (loggedIn)
             {
+                Console.Clear();
+                Console.WriteLine("========================================");
+                Console.WriteLine($"   GUILD HALL - Welcome, {User.Username}!");
+                Console.WriteLine("========================================\n");
                 
-
-                Console.WriteLine($"Welcome! Hero: {User.Username}");
-                Console.WriteLine("Please choose between 1-6:");
-                Console.WriteLine("1. Add new quest");
-                Console.WriteLine("2. View all quests"); 
-                Console.WriteLine("3. Update / Complete quest");
-                Console.WriteLine("4. Request Guild Advisor help (AI)");
-                Console.WriteLine("5. Show guild report");
-                Console.WriteLine("6. Logout");
-
+                Console.WriteLine("  1. Add new quest\n");
+                Console.WriteLine("  2. View all quests\n"); 
+                Console.WriteLine("  3. Update / Complete quest\n");
+                Console.WriteLine("  4. Request Guild Advisor help (AI)\n");
+                Console.WriteLine("  5. Show guild report\n");
+                Console.WriteLine("  6. Logout\n");
+                
+                Console.WriteLine("========================================");
+                Console.Write("  Choose an option (1-6): ");
 
                 bool validInput = int.TryParse(Console.ReadLine(), out int choice);
 
                 if (!validInput)
                 {
-                    Console.WriteLine("Invalid choice! Try again.");
+                    Console.WriteLine("\nInvalid choice! Try again.");
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    continue;
                 }
 
 
                 switch (choice)
                 {
                     case 1:
-
+                        Console.Clear();
                         questmanager.AddQuest();
 
                         Notifications notify = new Notifications(questmanager);
@@ -108,32 +122,37 @@ namespace HeroProject
                         break;
 
                     case 2:
+                        Console.Clear();
                         questmanager.ShowAllQuests();
                         break;
 
                     case 3:
+                        Console.Clear();
                         questmanager.UpdateQuest();
                         break;
 
                     case 4:
-
                         GuildHelperAI helper = new GuildHelperAI();
                         await helper.RunAsync();
+                        Console.Clear(); // Rensa efter att AI:n är klar, inte innan
                         break;
 
                     case 5:
+                        Console.Clear();
                         questmanager.ShowReport();
                         break;
 
                     case 6:
 
                         loggedIn = false;
-                        Console.WriteLine("You have left the Guild Hall.");
+                        Console.WriteLine("\nYou have left the Guild Hall.");
                         break;
 
                     default:
 
-                        Console.WriteLine("Invalid choice! Try again.");
+                        Console.WriteLine("\nInvalid choice! Try again.");
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadKey();
                         break;
                 }
             }

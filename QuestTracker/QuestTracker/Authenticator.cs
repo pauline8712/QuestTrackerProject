@@ -32,8 +32,11 @@ namespace HeroProject
 
             while (true)
             {
-                Console.WriteLine("Please write down your username:");
+                Console.WriteLine("Please write down your username (or type 'back' to return to the menu):");
                 username = Console.ReadLine();
+
+                if (username?.ToLower() == "back")
+                    return; // Går tillbaka till menyn
 
                 bool usernameExists = users.Any(u => u.Username == username);
 
@@ -124,8 +127,11 @@ namespace HeroProject
             while (!loggedIn)
             {
                 Console.WriteLine("Log in");
-                Console.WriteLine("Enter your username:");
+                Console.WriteLine("Enter your username (or type 'back' to return to the menu):");
                 string Username = Console.ReadLine();
+
+                if (Username?.ToLower() == "back")
+                    return; // Återgå till huvudmenyn
 
                 Console.WriteLine("Enter the password:");
 
@@ -166,10 +172,27 @@ namespace HeroProject
                 }
                 else
                 {
-                    Console.WriteLine($"Welcome {Username}!");
-                    loggedIn = true;
+                    var random = new Random();
+                    string code = random.Next(100000, 999999).ToString();
 
-                    MenuHelper.LoggedInMenu(matchedUser);
+                    SendSms2FA(matchedUser.PhoneNumber, code);
+
+                    Console.Write("Enter the verification code sent to your phone: ");
+                    string inputCode = Console.ReadLine();
+
+                    if (inputCode == code)
+                    {
+                        Console.WriteLine($"Welcome {Username}!");
+                        loggedIn = true;
+
+                        MenuHelper.LoggedInMenu(matchedUser);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Incorrect verification code.");
+                        Console.WriteLine("Press any key to try again...");
+                        Console.ReadKey();
+                    }
                 }
             }
         }
@@ -192,7 +215,7 @@ namespace HeroProject
             TwilioClient.Init(accountSid, authToken);
 
 
-            var from = new PhoneNumber("+18142921948");
+            var from = new PhoneNumber("+17164665965");
             var to = new PhoneNumber(phoneNumber);
 
 
