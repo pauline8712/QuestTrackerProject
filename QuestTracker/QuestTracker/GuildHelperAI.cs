@@ -86,15 +86,29 @@ namespace HeroProject
                 string userInput = Console.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(userInput))
+                {
+                    Console.WriteLine("Please type something or 'exit' to quit.");
                     continue;
+                }
 
                 if (userInput.ToLower() == "exit")
                     break;
 
-                string reply = await AskGuildAsync(userInput);
-                PrintGuildMessage(reply);
+                try
+                {
+                    string reply = await AskGuildAsync(userInput);
+                    PrintGuildMessage(reply);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error contacting AI: {ex.Message}");
+                }
+
                 Console.WriteLine();
             }
+
+            Console.WriteLine("Returning to Guild Hall menu...");
+            Console.ReadKey();
         }
 
     }
