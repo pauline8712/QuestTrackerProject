@@ -16,10 +16,14 @@ namespace HeroProject
     {
 
         private List<User> users = new List<User>();
-        private string filePath = "users.json";
+        private string filePath;
 
         public Authenticator()
         {
+            // Set the file path to be in the same directory as the executable
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            filePath = Path.Combine(baseDir, "users.json");
+            
             LoadUsersFromFile();
         }
 
@@ -177,24 +181,94 @@ namespace HeroProject
 
                     SendSms2FA(matchedUser.PhoneNumber, code);
 
-                    Console.Write("Enter the verification code sent to your phone: ");
-                    string inputCode = Console.ReadLine();
+                    int attempts = 3;
+                    bool verified = false;
 
-                    if (inputCode == code)
+                    while (attempts > 0 && !verified)
                     {
-                        Console.WriteLine($"Welcome {Username}!");
-                        loggedIn = true;
+                        Console.WriteLine($"\nVerification code sent! (Attempts left: {attempts})");
+                        string inputCode = GetVerificationCodeWithVisuals(6);
 
-                        MenuHelper.LoggedInMenu(matchedUser);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Incorrect verification code.");
-                        Console.WriteLine("Press any key to try again...");
-                        Console.ReadKey();
+                        if (inputCode == code)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.WriteLine($"\n\n   Welcome back, {Username}!");
+                            Console.ResetColor();
+                            Console.WriteLine("   Press any key to enter the Guild Hall...");
+                            Console.ReadKey();
+                            
+                            verified = true;
+                            loggedIn = true;
+                            MenuHelper.LoggedInMenu(matchedUser);
+                        }
+                        else
+                        {
+                            attempts--;
+                            if (attempts > 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("\n\n   Incorrect verification code. Please try again.");
+                                Console.ResetColor();
+                            }
+                            else
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("\n\n   Too many failed attempts. Security lock engaged.");
+                                Console.ResetColor();
+                                Console.WriteLine("   Returning to main menu...");
+                                Console.ReadKey();
+                                return; // Back to start menu
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        private string GetVerificationCodeWithVisuals(int length)
+        {
+            string input = "";
+            int startX = Console.CursorLeft + 3;
+            int startY = Console.CursorTop + 1;
+
+            while (input.Length < length || true)
+            {
+                // Draw Squares
+                Console.SetCursorPosition(startX, startY);
+                for (int i = 0; i < length; i++)
+                {
+                    if (i < input.Length)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write($"[{input[i]}] ");
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write("[ ] ");
+                    }
+                }
+                Console.ResetColor();
+
+                if (input.Length == length) break;
+
+                var key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+                {
+                    input = input[..^1];
+                }
+                else if (char.IsDigit(key.KeyChar) && input.Length < length)
+                {
+                    input += key.KeyChar;
+                }
+                else if (key.Key == ConsoleKey.Escape)
+                {
+                    return "";
+                }
+            }
+
+            return input;
         }
 
 

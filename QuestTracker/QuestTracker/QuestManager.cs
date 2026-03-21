@@ -3,23 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace HeroProject
 {
     public class QuestManager
     {
+        private string connectionString = @"Server=.\SQLEXPRESS;Database=QuestDB;Trusted_Connection=True;TrustServerCertificate=True;";
         private List<Quest> quests = new List<Quest>();
 
 
         public void AddQuest()
         {
-
             Quest newQuest = new Quest();
-
             newQuest.CreateAQuest();
-            quests.Add(newQuest);
 
-            Console.WriteLine("The mission is added.");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "INSERT INTO dbo.Quests (Title, Description, Status, DueDate, Priority) VALUES (@title, @desc, @status, @due, @priority)";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@title", newQuest.Name);
+                    command.Parameters.AddWithValue("@desc", newQuest.Description);
+                    command.Parameters.AddWithValue("@status", newQuest.Status.ToString());
+                    command.Parameters.AddWithValue("@due", newQuest.DueDate);
+                    command.Parameters.AddWithValue("@priority", newQuest.Priority);
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            Console.WriteLine("\nQuest successfully created and saved to database!");
             Console.WriteLine("Press any key to return to the menu...");
             Console.ReadKey();
         }
@@ -28,18 +42,19 @@ namespace HeroProject
 
         public void ShowAllQuests()
         {
+            List<Quest> sqlQuests = GetAllQuestsFromDb();
 
-            for (int i = 0; i < quests.Count; i++)
+            if (sqlQuests.Count == 0)
             {
-                Console.WriteLine($"\nQuest #{i + 1}:");
-                quests[i].ShowQuestInfo();
+                Console.WriteLine("There are no missions.");
             }
-
-
-            if (quests.Count == 0)
+            else
             {
-                Console.WriteLine("There is no missions.");
-                return;
+                foreach (var quest in sqlQuests)
+                {
+                    Console.WriteLine("\n----------------------------");
+                    quest.ShowQuestInfo();
+                }
             }
 
             Console.WriteLine("\nPress any key to return to the menu...");
@@ -51,21 +66,32 @@ namespace HeroProject
 
         public void CompleteQuest()
         {
-            Console.Write("Please Enter the ID: ");
-            int id = int.Parse(Console.ReadLine());
-
-
-            for (int i = 0; i < quests.Count; i++)
+            Console.Write("Please Enter the ID of the quest to complete: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
             {
-                if (quests[i].ID == id)
-                {
-                    quests[i].Status = QuestStatus.Completed;
-                    Console.WriteLine("The mission is marked as completed!");
-                    return;
-                }
+                Console.WriteLine("Invalid ID format.");
+                return;
             }
 
-            Console.WriteLine("There is no mission with that ID.");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "UPDATE dbo.Quests SET Status = @status WHERE Id = @id";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@status", QuestStatus.Completed.ToString());
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                        Console.WriteLine("The mission is marked as completed in the database!");
+                    else
+                        Console.WriteLine("No mission found with that ID.");
+                }
+            }
+            
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
 
@@ -73,57 +99,45 @@ namespace HeroProject
         public void UpdateQuest()
         {
             Console.Write("Write down the ID for the mission you want to change the status: ");
-            int id = int.Parse(Console.ReadLine());
-
-            //LINQ
-            for (int i = 0; i < quests.Count; i++)
+            if (!int.TryParse(Console.ReadLine(), out int id))
             {
-                if (quests[i].ID == id)
-                {
-                    Console.WriteLine("\nCurrent quest info:");
-                    quests[i].ShowQuestInfo();
+                Console.WriteLine("Invalid ID format.");
+                return;
+            }
 
-                    Console.WriteLine("Please write down the status for the mission (ongoing/completed/failed/waiting):");
-                    string statusInput = Console.ReadLine().ToLower();
+            Console.WriteLine("Please write down the status for the mission (ongoing/completed/failed/waiting):");
+            string statusInput = Console.ReadLine().ToLower();
+            QuestStatus newStatus;
 
-
-                    switch (statusInput)
-                    {
-                        case "ongoing":
-                            quests[i].Status = QuestStatus.Ongoing;
-                            break;
-
-                        case "completed":
-                            quests[i].Status = QuestStatus.Completed;
-                            break;
-
-                        case "failed":
-                            quests[i].Status = QuestStatus.Failed;
-                            break;
-
-                        case "waiting":
-                            quests[i].Status = QuestStatus.Waiting;
-                            break;
-
-                        default:
-                            Console.WriteLine("Invalid status. Nothing was changed.");
-                            Console.WriteLine("Press any key to return to the menu...");
-                            Console.ReadKey();
-                            return;
-                    }
-
-                    Console.WriteLine("\nUpdated quest info:");
-                    quests[i].ShowQuestInfo();
-
-                    Console.WriteLine("Status updated!");
+            switch (statusInput)
+            {
+                case "ongoing": newStatus = QuestStatus.Ongoing; break;
+                case "completed": newStatus = QuestStatus.Completed; break;
+                case "failed": newStatus = QuestStatus.Failed; break;
+                case "waiting": newStatus = QuestStatus.Waiting; break;
+                default:
+                    Console.WriteLine("Invalid status. Nothing was changed.");
                     Console.WriteLine("Press any key to return to the menu...");
                     Console.ReadKey();
                     return;
-                }
             }
 
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "UPDATE dbo.Quests SET Status = @status WHERE Id = @id";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@status", newStatus.ToString());
+                    int rowsAffected = command.ExecuteNonQuery();
 
-            Console.WriteLine("No task was found with that ID.");
+                    if (rowsAffected > 0)
+                        Console.WriteLine("Status updated in the database!");
+                    else
+                        Console.WriteLine("No mission found with that ID.");
+                }
+            }
 
             Console.WriteLine("Press any key to return to the menu...");
             Console.ReadKey();
@@ -133,32 +147,63 @@ namespace HeroProject
 
         public void ShowReport()
         {
-            int Completed = 0;
-            int NotCompleted = 0;
+            int completed = 0;
+            int others = 0;
 
+            List<Quest> sqlQuests = GetAllQuestsFromDb();
 
-            for (int i = 0; i < quests.Count; i++)
+            foreach (var q in sqlQuests)
             {
-                if (quests[i].Status == QuestStatus.Completed)
-                    Completed++;
+                if (q.Status == QuestStatus.Completed)
+                    completed++;
                 else
-                    NotCompleted++;
+                    others++;
             }
 
 
-            Console.WriteLine("Report:");
-            Console.WriteLine("Number of completed missions: " + Completed);
-            Console.WriteLine("Number of other missions: " + NotCompleted);
+            Console.WriteLine("Guild Report:");
+            Console.WriteLine("Number of completed missions: " + completed);
+            Console.WriteLine("Number of other missions: " + others);
 
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
 
 
+        private List<Quest> GetAllQuestsFromDb()
+        {
+            List<Quest> questList = new List<Quest>();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Id, Title, Description, Status, DueDate, Priority FROM dbo.Quests";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Quest q = new Quest(reader["Title"].ToString(), reader["Description"].ToString())
+                        {
+                            ID = (int)reader["Id"],
+                            DueDate = reader["DueDate"] != DBNull.Value ? (DateTime)reader["DueDate"] : DateTime.Now,
+                            Priority = reader["Priority"] != DBNull.Value ? reader["Priority"].ToString() : "Medium"
+                        };
+
+                        if (reader["Status"] != DBNull.Value && Enum.TryParse(reader["Status"].ToString(), out QuestStatus status))
+                        {
+                            q.Status = status;
+                        }
+
+                        questList.Add(q);
+                    }
+                }
+            }
+            return questList;
+        }
 
         public List<Quest> GetAllQuests()
         {
-            return quests;
+            return GetAllQuestsFromDb();
         }
     }
 }

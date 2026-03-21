@@ -2,7 +2,7 @@
 using HeroProject;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;  // <-- här är ändringen
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +10,7 @@ using System.Text.Json;
 internal class Program
 {
     // Connection string to your SQL Server database
-    static string connectionString = @"Server=.\SQLEXPRESS;Database=QuestDB;Trusted_Connection=True;";
+    static string connectionString = @"Server=.\SQLEXPRESS;Database=QuestDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private static void Main(string[] args)
     {
@@ -18,20 +18,13 @@ internal class Program
         Console.Title = "Quest Guild Tracker";
         Console.ForegroundColor = ConsoleColor.Green;
 
-        // Example usage of SQL quests
-        AddQuest(new Quest("Rescue the Princess", "Go to the castle and rescue the princess."));
-        AddQuest(new Quest("Find the Treasure", "Explore the cave and find the treasure."));
-
-        Console.WriteLine("All quests after adding:");
-        ShowAllQuests();
-
-        UpdateQuest(1, "Rescue the Prince", "Go to the castle and rescue the prince.");
-        Console.WriteLine("\nAll quests after updating ID 1:");
-        ShowAllQuests();
-
-        DeleteQuest(2);
-        Console.WriteLine("\nAll quests after deleting ID 2:");
-        ShowAllQuests();
+         // --- TESTA SQL CONNECTION ---
+        using (var conn = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
+        {
+            conn.Open();
+            Console.WriteLine("Connection successful!");
+        }
+        // -----------------------------
 
         // Start main menu from MenuHelper
         MenuHelper.StartMenu();
@@ -39,18 +32,22 @@ internal class Program
         Console.ResetColor();
     }
 
-    // Quest class
-    class Quest
+    // New method to create a quest via user input
+    static void CreateQuestByUser()
     {
-        public int Id { get; set; } // Auto-incremented by SQL
-        public string Name { get; set; }
-        public string Description { get; set; }
+        Console.WriteLine("\n--- Create New Quest ---");
+        Console.Write("Enter quest name: ");
+        string name = Console.ReadLine() ?? "Unnamed Mission";
+        Console.Write("Enter quest description: ");
+        string description = Console.ReadLine() ?? "No description.";
+        Console.Write("Enter quest priority (High/Medium/Low): ");
+        string priority = Console.ReadLine() ?? "Medium";
 
-        public Quest(string name, string description)
-        {
-            Name = name;
-            Description = description;
-        }
+        Quest newQuest = new Quest(name, description) { Priority = priority };
+        AddQuest(newQuest);
+        Console.WriteLine("\nQuest successfully created and saved to database!");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
     }
 
     // Add a quest to SQL
@@ -59,28 +56,33 @@ internal class Program
         using (SqlConnection connection = new SqlConnection(connectionString))
         {
             connection.Open();
-            string query = "INSERT INTO Quests (Name, Description) VALUES (@name, @desc)";
+            string query = "INSERT INTO dbo.Quests (Title, Description, Status, DueDate, Priority) VALUES (@title, @desc, @status, @due, @priority)";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
-                command.Parameters.AddWithValue("@name", quest.Name);
+                command.Parameters.AddWithValue("@title", quest.Name);
                 command.Parameters.AddWithValue("@desc", quest.Description);
+                command.Parameters.AddWithValue("@status", quest.Status.ToString());
+                command.Parameters.AddWithValue("@due", quest.DueDate);
+                command.Parameters.AddWithValue("@priority", quest.Priority);
                 command.ExecuteNonQuery();
             }
         }
     }
 
     // Update a quest by ID
-    static void UpdateQuest(int id, string newName, string newDescription)
+    static void UpdateQuest(int id, string newTitle, string newDescription, QuestStatus status, string priority)
     {
         using (SqlConnection connection = new SqlConnection(connectionString))
         {
             connection.Open();
-            string query = "UPDATE Quests SET Name = @name, Description = @desc WHERE Id = @id";
+            string query = "UPDATE dbo.Quests SET Title = @title, Description = @desc, Status = @status, Priority = @priority WHERE Id = @id";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@name", newName);
+                command.Parameters.AddWithValue("@title", newTitle);
                 command.Parameters.AddWithValue("@desc", newDescription);
+                command.Parameters.AddWithValue("@status", status.ToString());
+                command.Parameters.AddWithValue("@priority", priority);
                 command.ExecuteNonQuery();
             }
         }
@@ -92,7 +94,7 @@ internal class Program
         using (SqlConnection connection = new SqlConnection(connectionString))
         {
             connection.Open();
-            string query = "DELETE FROM Quests WHERE Id = @id";
+            string query = "DELETE FROM dbo.Quests WHERE Id = @id";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
@@ -108,23 +110,32 @@ internal class Program
         using (SqlConnection connection = new SqlConnection(connectionString))
         {
             connection.Open();
-            string query = "SELECT Id, Name, Description FROM Quests";
+            string query = "SELECT Id, Title, Description, Status, DueDate, Priority FROM dbo.Quests";
             using (SqlCommand command = new SqlCommand(query, connection))
             using (SqlDataReader reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    quests.Add(new Quest(reader["Name"].ToString(), reader["Description"].ToString())
+                    Quest q = new Quest(reader["Title"].ToString(), reader["Description"].ToString())
                     {
-                        Id = (int)reader["Id"]
-                    });
+                        ID = (int)reader["Id"],
+                        DueDate = reader["DueDate"] != DBNull.Value ? (DateTime)reader["DueDate"] : DateTime.Now,
+                        Priority = reader["Priority"] != DBNull.Value ? reader["Priority"].ToString() : "Medium"
+                    };
+                    
+                    if (reader["Status"] != DBNull.Value && Enum.TryParse(reader["Status"].ToString(), out QuestStatus status))
+                    {
+                        q.Status = status;
+                    }
+                    
+                    quests.Add(q);
                 }
             }
         }
 
         foreach (var quest in quests)
         {
-            Console.WriteLine($"ID: {quest.Id} | Name: {quest.Name} | Description: {quest.Description}");
+            Console.WriteLine($"ID: {quest.ID} | Name: {quest.Name} | Priority: {quest.Priority} | Status: {quest.Status} | Deadline: {quest.DueDate.ToShortDateString()}");
         }
     }
 }

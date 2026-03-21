@@ -30,12 +30,12 @@ namespace HeroProject
             {
                 var timeLeft = quest.DueDate - now;
 
-                Console.WriteLine($"{quest.Title}: {timeLeft.TotalHours} hours left");
+                Console.WriteLine($"{quest.Name}: {timeLeft.TotalHours} hours left");
 
 
                 if (quest.Status != QuestStatus.Completed && timeLeft.TotalHours > 0 && timeLeft.TotalHours < 24)
                 {
-                    Console.WriteLine($"Hero, your mission '{quest.Title}' must be finished by tomorrow!");
+                    Console.WriteLine($"Hero, your mission '{quest.Name}' must be finished by tomorrow!");
 
 
 
@@ -52,7 +52,7 @@ namespace HeroProject
                         var message = MessageResource.Create(
                             to: to,
                             from: from,
-                            body: $"⚠️ Hero! Your mission '{quest.Title}' is due soon ({quest.DueDate})."
+                            body: $"⚠️ Hero! Your mission '{quest.Name}' is due soon ({quest.DueDate})."
                         );
 
                         Console.WriteLine($"SMS notification sent to {to}: {message.Sid}");
@@ -81,7 +81,7 @@ namespace HeroProject
 
                 if (quest.Status != QuestStatus.Completed && timeLeft.TotalHours > 0 && timeLeft.TotalHours < 24)
                 {
-                    Console.WriteLine($"- {quest.Title} (Deadline: {quest.DueDate})");
+                    Console.WriteLine($"- {quest.Name} (Deadline: {quest.DueDate})");
                     found = true;
                 }
             }
