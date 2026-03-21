@@ -1,8 +1,8 @@
-# QuestTracker 🛡️
+# QuestTracker 
 
 QuestTracker is a C# console-based RPG-style task management system designed for "Guild Heroes." It combines traditional productivity tracking with immersive elements like Two-Factor Authentication (2FA) for login and a persistent SQL Server database for quest storage.
 
-## 🌟 Features
+##  Features
 
 - **Hero Authentication**: Secure login system with Twilio-powered 2FA.
 - **Quest Management**: Create, update, complete, and track missions with priorities (High/Medium/Low).
@@ -11,7 +11,7 @@ QuestTracker is a C# console-based RPG-style task management system designed for
 - **Notification Service**: Automatic reminders for missions nearing their deadline.
 - **Guild Reports**: Summaries of completed vs. pending missions.
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 - **Language**: C# / .NET 8.0
 - **Database**: SQL Server (Express)
@@ -23,7 +23,7 @@ QuestTracker is a C# console-based RPG-style task management system designed for
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 QuestTracker/
@@ -44,7 +44,7 @@ QuestTracker/
 
 ---
 
-## 🚀 Setup Instructions
+##  Setup Instructions
 
 ### 1. Prerequisites
 - **Visual Studio 2022** or **VS Code** with .NET 8 SDK.
@@ -113,11 +113,11 @@ dotnet run --project QuestTracker/QuestTracker
 
 ---
 
-## 🎮 How to Use
+##  How to Use
 1. **Register/Login**: Start the app and create a "Hero" account.
 2. **2FA**: Enter the code sent to your phone using the visual verification interface.
 3. **Manage Quests**: Use the Guild Menu to add new missions, mark them as completed, or view your progress report.
 4. **Deadlines**: Keep an eye on the console for notifications regarding urgent missions!
 
-## 📜 License
+##  License
 This project is part of a training exercise for C# development.
